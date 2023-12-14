@@ -30,21 +30,38 @@ def validate_phone_number(contact_number):
     if re.match(r'^\d{10}$', contact_number) is None:
         raise ValueError("The contact number is not valid.")
 
+# @args_parser_typed(str, str)
+# def add_handler(contact_name, contact_number):
+#     validate_phone_number(contact_number)
+#     contact_number = database.get(contact_name)
+#     if contact_number is not None:
+#         return f"You cannot add an existing contact"
+#     else:
+#         database[contact_name] = contact_number
+#         return f"Number of {contact_name} was added"
+
 @args_parser_typed(str, str)
 def add_handler(contact_name, contact_number):
     validate_phone_number(contact_number)
-    database[contact_name] = contact_number
-    return f"Number of {contact_name} was added"
+
+    if contact_number in database.values() or contact_name in database.keys():
+        return f"You cannot add an existing contact"
+    else:
+        database[contact_name] = contact_number
+        return f"Number of {contact_name} was added"
 
 @args_parser_typed(str, str)
 def change_handler(contact_name, new_contact_number):
-    contact_number = database.get(contact_name)
-    if contact_number is None:
-        raise KeyError(f"{contact_name} not found in contacts")
-
+    # contact_number = database.get(contact_name)
+    # if contact_number is None:
+    #     raise KeyError(f"{contact_name} not found in contacts")
     validate_phone_number(new_contact_number)
-    database[contact_name] = new_contact_number
-    return f"Number for {contact_name} was changed"
+
+    if contact_name in database.keys():
+        database[contact_name] = new_contact_number
+        return f"Number of {contact_name} was changed"
+    else:
+        raise KeyError(f"{contact_name} not found in contacts")
 
 @args_parser_typed(str)
 def phone_handler(contact_name):
@@ -63,7 +80,7 @@ def hello_handler():
     return "How can I help you?"
 
 database = {
-    
+
 }
 
 def main():
@@ -84,21 +101,15 @@ def main():
 
         first_space = user_input.find(" ")
         handler_name = user_input[:first_space].lower()
-        args = user_input[first_space:].strip()
+        args = user_input[first_space:].strip()       
 
         if user_input.lower() == "hello":
             handler_name = "hello"
-        
-        if user_input.lower() == "show all":
-            handler_name = "show all"        
+
+        elif user_input.lower() == "show all":
+            handler_name = "show all"
 
         if handler_name in table:
-
-            if user_input.lower() == "hello":
-                table[handler_name]()
-
-            elif user_input.lower() == "show all":
-                table[handler_name]()
             
             try:
              
