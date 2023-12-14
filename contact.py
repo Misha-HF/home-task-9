@@ -6,25 +6,22 @@ def args_parser_typed(*type_args):
             function_args = args.split(" ")
 
             if len(type_args) != len(function_args):
-                print("Incorrect arguments amount")
-                return
+                raise ValueError("Incorrect arguments amount")
 
             for i in range(len(type_args)):
                 function_args[i] = type_args[i](function_args[i])
 
             try:
-                func(*function_args)
+                return func(*function_args)
 
             except TypeError as err:
-                return print(f"Error: {err}")
+                raise ValueError(f"Error: {err}")
 
             except ValueError as err:
-                return print(f"Handler error: {err}")
+                raise ValueError(f"Handler error: {err}")
 
             except KeyError as err:
-                return print(f"Error: {err}")
-
-            return
+                raise KeyError(f"Error: {err}")
 
         return wrapper
     return args_parser
@@ -37,8 +34,7 @@ def validate_phone_number(contact_number):
 def add_handler(contact_name, contact_number):
     validate_phone_number(contact_number)
     database[contact_name] = contact_number
-    return print(f"Number of {contact_name} was added")
-
+    return f"Number of {contact_name} was added"
 
 @args_parser_typed(str, str)
 def change_handler(contact_name, new_contact_number):
@@ -48,31 +44,29 @@ def change_handler(contact_name, new_contact_number):
 
     validate_phone_number(new_contact_number)
     database[contact_name] = new_contact_number
-    return print(f"Number for {contact_name} was changed")
-
+    return f"Number for {contact_name} was changed"
 
 @args_parser_typed(str)
-def phone_handler(contact_name): 
-    return print(f"The phone number for {contact_name} is {database[contact_name]}")
+def phone_handler(contact_name):
+    if contact_name not in database:
+        raise KeyError(f"{contact_name} not found in contacts")
 
+    return f"The phone number for {contact_name} is {database[contact_name]}"
 
 def show_all_handler():
     if not database:
         return "No contacts found"
     
-    return print(database)
-
+    return database
 
 def hello_handler():
-    return print("How can I help you?")
+    return "How can I help you?"
 
+database = {
+    
+}
 
 def main():
-    global database
-    database = {
-        "User": "0689999999"
-    }
-
     table = {
         "add": add_handler,
         "change": change_handler,
@@ -84,37 +78,46 @@ def main():
     while True:
         user_input = str(input(">>> "))
 
-        if user_input in ["good bye", "close", "exit", "quit"]:
+        if user_input.lower() in ["good bye", "close", "exit", "quit"]:
             print("Good Bye!")
             break
 
         first_space = user_input.find(" ")
-
-        handler_name = user_input[:first_space]
-        handler_name = handler_name.lower()
-
+        handler_name = user_input[:first_space].lower()
         args = user_input[first_space:].strip()
 
         if user_input.lower() == "hello":
             handler_name = "hello"
         
         if user_input.lower() == "show all":
-            handler_name = "show all"
+            handler_name = "show all"        
 
-        if table.get(handler_name) is not None:
+        if handler_name in table:
 
             if user_input.lower() == "hello":
                 table[handler_name]()
 
             elif user_input.lower() == "show all":
                 table[handler_name]()
+            
+            try:
+             
+                if user_input.lower() == "hello":
+                    result = table[handler_name]()
 
-            else:
-                table[handler_name](args)
-                
+                elif user_input.lower() == "show all":
+                    result = table[handler_name]()  
+
+                else:             
+                    result = table[handler_name](args)
+
+                if result:
+                    print(result)
+
+            except (ValueError, KeyError) as e:
+                print(f"{e}")
         else:
             print("No such command")
-
 
 if __name__ == "__main__":
     main()
